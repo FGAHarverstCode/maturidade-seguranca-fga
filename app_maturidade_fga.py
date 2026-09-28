@@ -47,6 +47,34 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# ----------------------------------------------------------------------------
+# LOGIN GATE — credenciais em .streamlit/secrets.toml (local) ou
+# Settings > Secrets no Streamlit Community Cloud (produção).
+# ----------------------------------------------------------------------------
+def _check_login() -> bool:
+    if st.session_state.get("authenticated"):
+        return True
+
+    st.title("🛡️ FG/A · Acesso restrito")
+    with st.form("login_form"):
+        user = st.text_input("Usuário")
+        pwd = st.text_input("Senha", type="password")
+        submitted = st.form_submit_button("Entrar")
+
+    if submitted:
+        creds = st.secrets.get("credentials", {})
+        if user == creds.get("username") and pwd == creds.get("password"):
+            st.session_state["authenticated"] = True
+            st.rerun()
+        else:
+            st.error("Usuário ou senha inválidos.")
+
+    return False
+
+
+if not _check_login():
+    st.stop()
+
 st.markdown(f"""
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
