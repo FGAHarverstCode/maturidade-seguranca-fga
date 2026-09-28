@@ -216,29 +216,33 @@ EXEC_LABEL = {"1p": "1 pessoa", "grp": "Peq. grupo", "multi": "Multifunc."}
 EXEC_CLASS = {"1p": "badge-1p", "grp": "badge-grp", "multi": "badge-multi"}
 
 # Checklist CIS Controls v8 (18 controles) — diagnóstico FG/A
+# Tupla: (controle, dificuldade, execução, status FG/A, safeguards no IG1, safeguards totais do controle)
+# Contagem de safeguards por Grupo de Implementação é definição oficial do CIS Controls v8.
 CHECKLIST_CIS = [
-    ("1. Inventário de Ativos", "Manter atualizado; cobrir shadow IT/BYOD; consolidar fontes", "1p", "falta"),
-    ("2. Inventário de Software", "Allowlisting mal calibrado trava a operação; legado; exceções", "grp", "falta"),
-    ("3. Proteção de Dados", "Classificação depende do negócio, não de TI; LGPD; mapear fluxos", "multi", "falta"),
-    ("4. Configuração Segura (Hardening)", "Definir baseline sem quebrar apps; conter \"drift\"; diversidade de dispositivos", "1p", "parc"),
-    ("5. Gestão de Contas", "Depende do ciclo do RH; contas de serviço órfãs; genéricas enraizadas", "grp", "parc"),
-    ("6. Controle de Acesso", "\"Explosão de papéis\"; revisões custosas; SoD; PAM é projeto à parte", "multi", "parc"),
-    ("7. Gestão de Vulnerabilidades", "Janela de manutenção; volume; patch quebra sistema; legado sem correção", "grp", "falta"),
-    ("8. Logs de Auditoria", "Custo de armazenamento; definir o que logar; correlação", "1p", "parc"),
-    ("9. E-mail e Navegador", "Falsos positivos; cobertura; manutenção", "1p", "ok"),
-    ("10. Defesas contra Malware", "Cobrir 100% dos endpoints; tuning; resposta", "1p", "ok"),
-    ("11. Recuperação de Dados", "Testar restauração; RTO/RPO; custo de DR; imutabilidade anti-ransomware", "multi", "parc"),
-    ("12. Infraestrutura de Rede", "Segmentar exige projeto e pode interromper serviço; documentação; skills de rede", "grp", "parc"),
-    ("13. Monitoramento de Rede", "Tuning; operação 24x7; skills; integração ao SIEM", "multi", "parc"),
-    ("14. Conscientização e Treinamento", "Engajamento; continuidade; medir eficácia", "multi", "parc"),
-    ("15. Provedores de Serviço", "Due diligence; contratos (jurídico); monitorar continuamente", "multi", "ok"),
-    ("16. Segurança de Aplicações", "Só se aplica com desenvolvimento interno; exige skills de AppSec", "multi", "na"),
-    ("17. Resposta a Incidentes", "Manter o plano vivo; exercitar; coordenação multi-área; comunicação regulatória (BACEN)", "multi", "parc"),
-    ("18. Testes de Invasão", "Independência de quem opera a segurança; escopo; custo; corrigir achados", "multi", "falta"),
+    ("1. Inventário de Ativos", "Manter atualizado; cobrir shadow IT/BYOD; consolidar fontes", "1p", "falta", 1, 5),
+    ("2. Inventário de Software", "Allowlisting mal calibrado trava a operação; legado; exceções", "grp", "falta", 3, 7),
+    ("3. Proteção de Dados", "Classificação depende do negócio, não de TI; LGPD; mapear fluxos", "multi", "falta", 6, 14),
+    ("4. Configuração Segura (Hardening)", "Definir baseline sem quebrar apps; conter \"drift\"; diversidade de dispositivos", "1p", "parc", 7, 12),
+    ("5. Gestão de Contas", "Depende do ciclo do RH; contas de serviço órfãs; genéricas enraizadas", "grp", "parc", 4, 6),
+    ("6. Controle de Acesso", "\"Explosão de papéis\"; revisões custosas; SoD; PAM é projeto à parte", "multi", "parc", 5, 8),
+    ("7. Gestão de Vulnerabilidades", "Janela de manutenção; volume; patch quebra sistema; legado sem correção", "grp", "falta", 4, 7),
+    ("8. Logs de Auditoria", "Custo de armazenamento; definir o que logar; correlação", "1p", "parc", 3, 12),
+    ("9. E-mail e Navegador", "Falsos positivos; cobertura; manutenção", "1p", "ok", 3, 7),
+    ("10. Defesas contra Malware", "Cobrir 100% dos endpoints; tuning; resposta", "1p", "ok", 3, 7),
+    ("11. Recuperação de Dados", "Testar restauração; RTO/RPO; custo de DR; imutabilidade anti-ransomware", "multi", "parc", 4, 5),
+    ("12. Infraestrutura de Rede", "Segmentar exige projeto e pode interromper serviço; documentação; skills de rede", "grp", "parc", 1, 8),
+    ("13. Monitoramento de Rede", "Tuning; operação 24x7; skills; integração ao SIEM", "multi", "parc", 0, 11),
+    ("14. Conscientização e Treinamento", "Engajamento; continuidade; medir eficácia", "multi", "parc", 8, 9),
+    ("15. Provedores de Serviço", "Due diligence; contratos (jurídico); monitorar continuamente", "multi", "ok", 1, 7),
+    ("16. Segurança de Aplicações", "Só se aplica com desenvolvimento interno; exige skills de AppSec", "multi", "na", 0, 14),
+    ("17. Resposta a Incidentes", "Manter o plano vivo; exercitar; coordenação multi-área; comunicação regulatória (BACEN)", "multi", "parc", 3, 9),
+    ("18. Testes de Invasão", "Independência de quem opera a segurança; escopo; custo; corrigir achados", "multi", "falta", 0, 5),
 ]
 
 STATUS_LABEL = {"ok": "OK", "parc": "Parc.", "falta": "Falta", "na": "N.A."}
 STATUS_CLASS = {"ok": "badge-ok", "parc": "badge-parc", "falta": "badge-falta", "na": "badge-na"}
+
+TOTAL_SAFEGUARDS_IG1 = sum(row[4] for row in CHECKLIST_CIS)
 
 # ----------------------------------------------------------------------------
 # GRÁFICOS
@@ -525,7 +529,6 @@ elif secao == "3 · O plano rumo ao IG1":
             ]),
             "Marco 1": ("Ganhos rápidos", [
                 "Organizar a gestão de contas (eliminar contas genéricas, rotação de senha).",
-                "Contratar teste de invasão externo e independente.",
                 "Iniciar programa contínuo de conscientização e simulação de phishing.",
                 "Formalizar processos já praticados (correções, backup, configuração de firewall).",
             ]),
@@ -539,6 +542,7 @@ elif secao == "3 · O plano rumo ao IG1":
                 "Formalizar o plano de continuidade e testar a recuperação de desastre.",
                 "Aplicar hardening completo em estações e notebooks.",
                 "Implantar gestão de acesso privilegiado e segregação de funções.",
+                "Contratar teste de invasão externo e independente — só faz sentido com o ambiente já hardenizado.",
             ]),
         }
         titulo, itens = detalhes[marco]
@@ -623,16 +627,27 @@ elif secao == "4 · Governança e execução":
                 "<span class='badge badge-ok'>OK</span> implementado &nbsp;·&nbsp; "
                 "<span class='badge badge-parc'>Parc.</span> parcial / a formalizar &nbsp;·&nbsp; "
                 "<span class='badge badge-falta'>Falta</span> do zero &nbsp;·&nbsp; "
-                "<span class='badge badge-na'>N.A.</span> não se aplica</p>", unsafe_allow_html=True)
+                "<span class='badge badge-na'>N.A.</span> não se aplica &nbsp;·&nbsp; "
+                "<b>Safeguards</b> = quantas dessas ações compõem o IG1 no controle, do total "
+                "definido pelo CIS (ex.: \"1 de 5\" — só 1 das 5 safeguards do controle é exigida "
+                "no IG1)</p>", unsafe_allow_html=True)
     rows_cis = "".join(
         f"<tr><td>{ctrl}</td><td>{dif}</td>"
         f"<td><span class='badge {EXEC_CLASS[ex]}'>{EXEC_LABEL[ex]}</span></td>"
-        f"<td><span class='badge {STATUS_CLASS[st_]}'>{STATUS_LABEL[st_]}</span></td></tr>"
-        for ctrl, dif, ex, st_ in CHECKLIST_CIS
+        f"<td><span class='badge {STATUS_CLASS[st_]}'>{STATUS_LABEL[st_]}</span></td>"
+        f"<td style='white-space:nowrap;'>{ig1_n} de {tot_n}</td></tr>"
+        for ctrl, dif, ex, st_, ig1_n, tot_n in CHECKLIST_CIS
     )
     st.markdown(f"<div class='doc-table-wrap'><table class='doc-table'>"
-                f"<tr><th>Controle</th><th>Principal dificuldade</th><th>Execução</th><th>FG/A</th></tr>"
-                f"{rows_cis}</table></div>", unsafe_allow_html=True)
+                f"<tr><th>Controle</th><th>Principal dificuldade</th><th>Execução</th><th>FG/A</th>"
+                f"<th>Safeguards (IG1/total)</th></tr>"
+                f"{rows_cis}"
+                f"<tr><td colspan='4' style='text-align:right; font-weight:700;'>Total safeguards no IG1</td>"
+                f"<td style='font-weight:700;'>{TOTAL_SAFEGUARDS_IG1} de 153</td></tr>"
+                f"</table></div>", unsafe_allow_html=True)
+    st.caption("Contagem por Grupo de Implementação (IG1) é definição oficial do CIS Controls v8. "
+               "Controles 13, 16 e 18 têm 0 safeguards no IG1 — não são exigência do padrão para essa "
+               "meta; entram no plano da FG/A como reforço além do piso mínimo.")
 
     st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
     st.markdown("#### 4 · Impacto e recomendação")
