@@ -63,7 +63,12 @@ def _check_login() -> bool:
 
     if submitted:
         creds = st.secrets.get("credentials", {})
-        if user == creds.get("username") and pwd == creds.get("password"):
+        if not creds:
+            st.error(
+                "Secrets não configurados neste deploy "
+                "(Settings → Secrets está vazio ou app não reiniciou após salvar)."
+            )
+        elif user == creds.get("username") and pwd == creds.get("password"):
             st.session_state["authenticated"] = True
             st.rerun()
         else:
