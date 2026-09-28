@@ -125,6 +125,35 @@ st.markdown(f"""
     .ms h4 {{ margin:4px 0 8px 0; color:{INK}; font-size:1.02rem; }}
     .ms ul {{ margin:0; padding-left:18px; }}
     .ms li {{ font-size:0.82rem; color:{INK_SOFT}; margin-bottom:5px; }}
+
+    /* tabela de governança / checklist */
+    .doc-table {{ width:100%; border-collapse:collapse; font-size:0.84rem; }}
+    .doc-table th {{ text-align:left; background:{PAPER_ALT}; color:{INK_SOFT};
+                      font-size:0.68rem; text-transform:uppercase; letter-spacing:0.05em;
+                      font-weight:700; padding:8px 12px; border-bottom:1px solid {LINE}; }}
+    .doc-table td {{ padding:8px 12px; border-bottom:1px solid {LINE}; color:{INK}; vertical-align:top; }}
+    .doc-table tr:last-child td {{ border-bottom:none; }}
+    .doc-table-wrap {{ overflow-x:auto; border:1px solid {LINE}; border-radius:10px; margin-bottom:8px; }}
+
+    .badge {{ display:inline-block; padding:3px 10px; border-radius:100px; font-size:0.72rem;
+              font-weight:600; white-space:nowrap; }}
+    .badge-1p    {{ background:{PAPER_ALT}; color:{INK_SOFT}; }}
+    .badge-grp   {{ background:#F3E9D3; color:#8A6A22; }}
+    .badge-multi {{ background:#F1E1DD; color:{RISK_HIGH}; }}
+    .badge-ok    {{ background:#E4EBE2; color:{SAGE_DEEP}; }}
+    .badge-parc  {{ background:#F3E9D3; color:#8A6A22; }}
+    .badge-falta {{ background:#F1E1DD; color:{RISK_HIGH}; }}
+    .badge-na    {{ background:{PAPER_ALT}; color:{INK_SOFT}; }}
+
+    .q-item {{ display:flex; gap:10px; background:{PAPER_ALT}; border:1px solid {LINE};
+               border-radius:8px; padding:10px 14px; margin-bottom:8px; font-size:0.86rem; }}
+    .q-num {{ flex:none; width:22px; height:22px; border-radius:50%; background:{SAGE_DEEP};
+              color:#fff; font-size:0.72rem; font-weight:700; display:flex; align-items:center;
+              justify-content:center; }}
+
+    .ask-box {{ background:{SAGE_DEEP}; color:#fff; border-radius:10px; padding:20px 22px; }}
+    .ask-box h4 {{ color:#fff; margin:0 0 8px 0; }}
+    .ask-box p {{ color:#EFF2ED; }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -149,6 +178,67 @@ NOTA_META  = 80.0
 RISCO = {"Alto": 8, "Moderado": 5, "Baixo": 4, "Não avaliado": 1}
 ESFORCO = {"Já prontos": 11, "A formalizar": 18, "Do zero": 21}
 IG = {"IG1": 56, "IG2 (+74)": 74, "IG3 (+23)": 23}
+
+# Mapa dos passos do plano — quem executa e por quê (Fase 0 de governança)
+MAPA_PASSOS = [
+    ("Governança (RACI, comitê, modelo misto) — Fase 0", "multi",
+     "Distribui responsabilidade e exige patrocínio da diretoria; autoriza todo o resto"),
+    ("Formalizar processos já existentes (SLA de patch, backup, config firewall)", "1p",
+     "É redigir e publicar o que já roda; o dono só valida"),
+    ("Limpeza de contas genéricas / rotação de senha (Entra ID)", "1p",
+     "Ação técnica pontual no diretório"),
+    ("Processo de contas (admissão/movimentação/desligamento)", "grp",
+     "Depende do RH disparar o gatilho; TI sozinho não sabe quem entrou/saiu"),
+    ("Pentest", "multi",
+     "Precisa de independência de quem opera a segurança; contratação envolve compras/diretoria"),
+    ("Conscientização + phishing simulado", "multi",
+     "Programa contínuo, não evento; exige RH, comunicação e patrocínio"),
+    ("Inventário de ativos e software (Intune/Defender)", "1p",
+     "Rodar a descoberta é individual; manter atualizado e atribuir dono é contínuo e coletivo"),
+    ("Patch management com SLA", "grp",
+     "Janela de manutenção e priorização precisam do aval dos donos dos sistemas"),
+    ("Validar segmentação de rede (Zyxel)", "1p",
+     "Conferir é técnico; mudar a segmentação vira Peq. grupo (impacto operacional)"),
+    ("Proteção de dados / LGPD (ROPA, DPIA, classificação)", "multi",
+     "Classificar dado é conhecimento do negócio + jurídico/DPO; TI não classifica sozinho"),
+    ("Criptografia em repouso", "1p", "Ação técnica de configuração"),
+    ("Hardening de estações/notebooks", "1p",
+     "Aplicar baseline via GPO/Intune é técnico; definir baseline e exceções é Peq. grupo"),
+    ("BCP / teste de DR", "multi",
+     "RTO/RPO são decisão do negócio; teste envolve várias áreas; site alternativo é decisão de investimento"),
+    ("PAM + matriz de SoD", "multi",
+     "O objeto do controle é separar poderes; por definição não pode ser desenhado por uma pessoa só"),
+    ("Gestão de mudanças", "grp",
+     "Precisa de solicitante, aprovador e executor distintos"),
+]
+
+EXEC_LABEL = {"1p": "1 pessoa", "grp": "Peq. grupo", "multi": "Multifunc."}
+EXEC_CLASS = {"1p": "badge-1p", "grp": "badge-grp", "multi": "badge-multi"}
+
+# Checklist CIS Controls v8 (18 controles) — diagnóstico FG/A
+CHECKLIST_CIS = [
+    ("1. Inventário de Ativos", "Manter atualizado; cobrir shadow IT/BYOD; consolidar fontes", "1p", "falta"),
+    ("2. Inventário de Software", "Allowlisting mal calibrado trava a operação; legado; exceções", "grp", "falta"),
+    ("3. Proteção de Dados", "Classificação depende do negócio, não de TI; LGPD; mapear fluxos", "multi", "falta"),
+    ("4. Configuração Segura (Hardening)", "Definir baseline sem quebrar apps; conter \"drift\"; diversidade de dispositivos", "1p", "parc"),
+    ("5. Gestão de Contas", "Depende do ciclo do RH; contas de serviço órfãs; genéricas enraizadas", "grp", "parc"),
+    ("6. Controle de Acesso", "\"Explosão de papéis\"; revisões custosas; SoD; PAM é projeto à parte", "multi", "parc"),
+    ("7. Gestão de Vulnerabilidades", "Janela de manutenção; volume; patch quebra sistema; legado sem correção", "grp", "falta"),
+    ("8. Logs de Auditoria", "Custo de armazenamento; definir o que logar; correlação", "1p", "parc"),
+    ("9. E-mail e Navegador", "Falsos positivos; cobertura; manutenção", "1p", "ok"),
+    ("10. Defesas contra Malware", "Cobrir 100% dos endpoints; tuning; resposta", "1p", "ok"),
+    ("11. Recuperação de Dados", "Testar restauração; RTO/RPO; custo de DR; imutabilidade anti-ransomware", "multi", "parc"),
+    ("12. Infraestrutura de Rede", "Segmentar exige projeto e pode interromper serviço; documentação; skills de rede", "grp", "parc"),
+    ("13. Monitoramento de Rede", "Tuning; operação 24x7; skills; integração ao SIEM", "multi", "parc"),
+    ("14. Conscientização e Treinamento", "Engajamento; continuidade; medir eficácia", "multi", "parc"),
+    ("15. Provedores de Serviço", "Due diligence; contratos (jurídico); monitorar continuamente", "multi", "ok"),
+    ("16. Segurança de Aplicações", "Só se aplica com desenvolvimento interno; exige skills de AppSec", "multi", "na"),
+    ("17. Resposta a Incidentes", "Manter o plano vivo; exercitar; coordenação multi-área; comunicação regulatória (BACEN)", "multi", "parc"),
+    ("18. Testes de Invasão", "Independência de quem opera a segurança; escopo; custo; corrigir achados", "multi", "falta"),
+]
+
+STATUS_LABEL = {"ok": "OK", "parc": "Parc.", "falta": "Falta", "na": "N.A."}
+STATUS_CLASS = {"ok": "badge-ok", "parc": "badge-parc", "falta": "badge-falta", "na": "badge-na"}
 
 # ----------------------------------------------------------------------------
 # GRÁFICOS
@@ -259,7 +349,8 @@ with st.sidebar:
         ["Visão geral",
          "1 · O problema de hoje",
          "2 · O framework (CIS & IG)",
-         "3 · O plano rumo ao IG1"],
+         "3 · O plano rumo ao IG1",
+         "4 · Governança e execução"],
         label_visibility="collapsed",
     )
     st.markdown("<hr>", unsafe_allow_html=True)
@@ -466,3 +557,100 @@ elif secao == "3 · O plano rumo ao IG1":
                 unsafe_allow_html=True)
     st.caption("Marcos representam sequência e dependência, não prazos. O cronograma é definido no Marco 0, "
                "junto com a matriz de responsabilidades.")
+
+# ----------------------------------------------------------------------------
+# SEÇÃO 4: GOVERNANÇA E EXECUÇÃO
+# ----------------------------------------------------------------------------
+elif secao == "4 · Governança e execução":
+    st.markdown("<div class='eyebrow'>Ato 4 · Justificativa</div>", unsafe_allow_html=True)
+    st.markdown("<div class='script' style='font-size:4rem; margin:-6px 0 2px;'>Governança e execução</div>",
+                unsafe_allow_html=True)
+    st.markdown("<p class='lede'>Autonomia de decisão e tempo dedicado ao projeto — o que já foi mapeado "
+                "nas últimas duas semanas e o que isso exige da diretoria daqui pra frente.</p>",
+                unsafe_allow_html=True)
+    st.markdown("<hr>", unsafe_allow_html=True)
+
+    s1, s2, s3 = st.columns(3)
+    for col, num, lbl in [
+        (s1, "2 sem.", "Dedicadas ao mapeamento de processos e déficits"),
+        (s2, "18", "Controles CIS v8 avaliados"),
+        (s3, "6", "Frentes que exigem decisão multifuncional"),
+    ]:
+        col.markdown(f"<div class='card'><div class='big-stat' style='font-size:2rem;'>{num}</div>"
+                    f"<div class='stat-label'>{lbl}</div></div>", unsafe_allow_html=True)
+
+    st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
+    st.markdown("#### 1 · Por que \"1 pessoa\" vs. \"grupo\" — o critério")
+    st.markdown(f"<p style='color:{INK_SOFT}; font-size:0.9rem;'>O critério não é dificuldade técnica. "
+                "Três perguntas decidem quem executa cada frente:</p>", unsafe_allow_html=True)
+    for n, pergunta in [
+        (1, "<b>É configuração/documentação ou é decisão/política?</b> Configurar um filtro ou rodar um "
+            "scan, uma pessoa faz. Definir política de acesso, RTO ou classificação de dados exige "
+            "autoridade e conhecimento do negócio — logo, grupo."),
+        (2, "<b>O resultado depende de outras áreas?</b> Ciclo de contas depende do RH; classificação de "
+            "dados depende dos donos da informação; continuidade depende do negócio dizer quanto tempo "
+            "aguenta parado. Sem elas, TI \"adivinha\" — e erra."),
+        (3, "<b>A tarefa é, por natureza, sobre separar poderes?</b> Alguns itens podem tecnicamente ser "
+            "feitos por uma pessoa, mas não devem — o controle existe justamente para que ninguém "
+            "concentre poder (segregação de funções, SoD). Este é o ponto mais importante para a "
+            "diretoria: quem faz não pode ser quem aprova nem quem audita."),
+    ]:
+        st.markdown(f"<div class='q-item'><span class='q-num'>{n}</span><div>{pergunta}</div></div>",
+                    unsafe_allow_html=True)
+
+    st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
+    st.markdown("#### 2 · Mapa dos passos do plano")
+    st.markdown(f"<p style='color:{INK_SOFT}; font-size:0.82rem;'>"
+                "<span class='badge badge-1p'>1 pessoa</span> técnico/documental individual &nbsp;·&nbsp; "
+                "<span class='badge badge-grp'>Peq. grupo</span> TI + 1 dono de área &nbsp;·&nbsp; "
+                "<span class='badge badge-multi'>Multifunc.</span> várias áreas / comitê / diretoria / "
+                "jurídico-DPO / fornecedor</p>", unsafe_allow_html=True)
+    rows = "".join(
+        f"<tr><td>{passo}</td><td><span class='badge {EXEC_CLASS[ex]}'>{EXEC_LABEL[ex]}</span></td>"
+        f"<td>{motivo}</td></tr>"
+        for passo, ex, motivo in MAPA_PASSOS
+    )
+    st.markdown(f"<div class='doc-table-wrap'><table class='doc-table'>"
+                f"<tr><th>Passo / frente do plano</th><th>Execução</th><th>Por quê</th></tr>"
+                f"{rows}</table></div>", unsafe_allow_html=True)
+    st.caption("Regra prática: uma pessoa toca as tarefas técnicas e a documentação; tudo que envolve "
+               "autoridade, dado de negócio, ciclo de pessoas, continuidade ou separação de poderes exige "
+               "grupo — não por complexidade, mas por controle e legitimidade.")
+
+    st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
+    st.markdown("#### 3 · Checklist CIS Controls v8 — diagnóstico FG/A")
+    st.markdown(f"<p style='color:{INK_SOFT}; font-size:0.82rem;'>"
+                "<span class='badge badge-ok'>OK</span> implementado &nbsp;·&nbsp; "
+                "<span class='badge badge-parc'>Parc.</span> parcial / a formalizar &nbsp;·&nbsp; "
+                "<span class='badge badge-falta'>Falta</span> do zero &nbsp;·&nbsp; "
+                "<span class='badge badge-na'>N.A.</span> não se aplica</p>", unsafe_allow_html=True)
+    rows_cis = "".join(
+        f"<tr><td>{ctrl}</td><td>{dif}</td>"
+        f"<td><span class='badge {EXEC_CLASS[ex]}'>{EXEC_LABEL[ex]}</span></td>"
+        f"<td><span class='badge {STATUS_CLASS[st_]}'>{STATUS_LABEL[st_]}</span></td></tr>"
+        for ctrl, dif, ex, st_ in CHECKLIST_CIS
+    )
+    st.markdown(f"<div class='doc-table-wrap'><table class='doc-table'>"
+                f"<tr><th>Controle</th><th>Principal dificuldade</th><th>Execução</th><th>FG/A</th></tr>"
+                f"{rows_cis}</table></div>", unsafe_allow_html=True)
+
+    st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
+    st.markdown("#### 4 · Impacto e recomendação")
+    st.markdown(f"<p style='color:{INK_SOFT}; font-size:0.9rem;'>O erro clássico — e o maior risco de "
+                "execução deste projeto — é concentrar tudo em uma pessoa de TI. Isso produz três "
+                "problemas: <b>gargalo</b> (o projeto anda na velocidade de um indivíduo), "
+                "<b>quebra de SoD</b> (a mesma pessoa cria acesso, aprova e audita — o oposto do que os "
+                "controles 5, 6 e 8 pedem) e <b>falta de legitimidade</b> (uma classificação de dados "
+                "feita sem o negócio não se sustenta).</p>", unsafe_allow_html=True)
+
+    st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='ask-box'>"
+                f"<h4>Pedido concreto</h4>"
+                f"<p><b>Autonomia:</b> decidir, sem aprovação a cada passo, a ordem de execução dos "
+                f"Safeguards do IG1 e a escolha de ferramentas para as frentes classificadas como "
+                f"\"1 pessoa\" e \"Peq. grupo\" — mantendo reporte periódico de status, não aprovação "
+                f"prévia item a item.</p>"
+                f"<p><b>Tempo:</b> dedicação contínua (não residual, entre outras demandas) para tocar as "
+                f"frentes técnicas do plano, com as frentes multifuncionais dependendo da Fase 0 de "
+                f"governança ser destravada pela diretoria (nomeação de donos e patrocínio).</p>"
+                f"</div>", unsafe_allow_html=True)
